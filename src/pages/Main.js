@@ -1,17 +1,30 @@
 import "../assets/style.css";
 import { FaHouse, FaFolder } from "react-icons/fa6";
-import { getVideo } from "../api/video";
-import { useState, useEffect } from "react";
-
+import { useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 const Main = () => {
-  const [videos, setVideos] = useState([]);
-  const videoAPI = async () => {
-    const result = await getVideo();
-    setVideos(result.data);
+  const { videos, setPage } = useOutletContext();
+  const navigate = useNavigate();
+  // IntersectionObserver 감지하는거
+
+  const scroll = () => {
+    if (
+      window.innerHeight + document.documentElement.scrollTop >=
+      document.documentElement.offsetHeight
+    ) {
+      setPage((page) => page + 1);
+    }
   };
   useEffect(() => {
-    videoAPI();
-  }, []);
+    window.addEventListener("scroll", scroll);
+    return () => {
+      window.removeEventListener("scroll", scroll);
+    };
+  }, [setPage]);
+  const detail = (videoCode) => {
+    navigate(`/video/${videoCode}`);
+  };
   return (
     <main>
       <aside>
@@ -48,7 +61,10 @@ const Main = () => {
                 <img src={video.videoImg} />
                 <video src={video.videoUrl} controls></video>
               </div>
-              <div className="video-info">
+              <div
+                className="video-info"
+                onClick={() => detail(video.videoCode)}
+              >
                 <img src={video.channel.channelImg} />
                 <div className="video-desc">
                   <h2>{video.videoTitle}</h2>

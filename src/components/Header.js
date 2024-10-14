@@ -1,6 +1,14 @@
 import { FaBars, FaMagnifyingGlass } from "react-icons/fa6";
 import logo from "../assets/logo.svg";
+import logoDark from "../assets/logo-dark.svg";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import Modal from "./Modal";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
+import { IoSunnyOutline } from "react-icons/io5";
+import { FaMoon } from "react-icons/fa6";
 
 const StyledHeader = styled.header`
   position: fixed;
@@ -37,11 +45,12 @@ const StyledHeader = styled.header`
       border: none;
       cursor: pointer;
       font-size: 20px;
-      border: 1px solid #ddd;
+      border: 1px solid #bbb;
       border-left: none;
-      padding: 6px 12px;
+      padding: 10px 12px;
       border-top-right-radius: 20px;
       border-bottom-right-radius: 20px;
+      margin: 10px;
     }
     input {
       display: block;
@@ -59,6 +68,7 @@ const StyledHeader = styled.header`
         background: none;
         border: none;
         font-size: 20px;
+        margin: 10px;
       }
     }
   }
@@ -84,25 +94,71 @@ const StyledHeader = styled.header`
     }
   }
 `;
-const Header = () => {
+const Header = ({ onUpload, onSearch }) => {
+  const navigate = useNavigate();
+  const { token, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const [keyword, setKeyword] = useState("");
+
+  const login = () => {
+    // 로그인 페이지 이동
+    navigate("/login");
+  };
+
+  const search = (e) => {
+    if (e.key === "Enter" || e.key === "NumpadEnter") {
+      onSearch(keyword);
+    }
+  };
+  const open = () => {
+    setIsOpen(true);
+  };
+  const close = () => {
+    setIsOpen(false);
+  };
   return (
-    <StyledHeader>
-      <div className="header-start">
-        <FaBars />
-        <a href="/">
-          <img src={logo} />
-        </a>
-      </div>
-      <div className="header-center">
-        <input type="text" placeholder="검색" />
-        <button type="button">
-          <FaMagnifyingGlass />
-        </button>
-      </div>
-      <div className="header-end">
-        <button type="button">로그인</button>
-      </div>
-    </StyledHeader>
+    <>
+      <StyledHeader>
+        <div className="header-start">
+          <FaBars />
+          <a href="/">
+            <img src={theme === "light" ? logo : logoDark} />
+          </a>
+        </div>
+        <div className="header-center">
+          <input
+            type="text"
+            placeholder="검색"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={search}
+          />
+          <button type="button" onClick={() => onSearch(keyword)}>
+            <FaMagnifyingGlass />
+          </button>
+        </div>
+        <div className="header-end">
+          {console.log(token)}
+          {token === null ? (
+            <button type="button" onClick={login}>
+              로그인
+            </button>
+          ) : (
+            <button type="button" onClick={logout}>
+              로그아웃
+            </button>
+          )}
+          <button type="button" onClick={open}>
+            업로드
+          </button>
+          <button onClick={toggleTheme}>
+            {theme === "dark" ? <IoSunnyOutline /> : <FaMoon />}
+          </button>
+        </div>
+        <Modal isOpen={isOpen} onClose={close} onUpload={onUpload} />
+      </StyledHeader>
+    </>
   );
 };
 export default Header;
